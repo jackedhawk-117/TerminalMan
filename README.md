@@ -4,7 +4,7 @@ Rmpc is a beautiful, modern and configurable terminal based Music Player Daemon 
 heavily inspired by [ncmpcpp](https://github.com/ncmpcpp/ncmpcpp) and
 [ranger](https://github.com/ranger/ranger)/[lf](https://github.com/gokcehan/lf) file managers.
 
-![preview](assets/preview.png)
+![preview](assets/preview2.png)
 
 ## Get started
 
