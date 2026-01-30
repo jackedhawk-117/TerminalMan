@@ -96,16 +96,17 @@ impl YtDlp {
 
         let mut cache = id.cache_subdir(&self.cache_dir);
         std::fs::create_dir_all(&cache)?;
-        cache.push(format!("{}.%(ext)s", id.filename));
+        cache.push("%(title)s.%(ext)s");
 
         let mut command = Command::new("yt-dlp");
         command.arg("-x");
-        command.arg("--embed-thumbnail");
+        command.arg("--audio-format");
+        command.arg("mp3");
+        command.arg("--audio-quality");
+        command.arg("0");
         command.arg("--embed-metadata");
-        command.arg("-f");
-        command.arg("bestaudio");
-        command.arg("--convert-thumbnails");
-        command.arg("jpg");
+        command.arg("--embed-thumbnail");
+        command.arg("--restrict-filenames");
         command.arg("--output");
         command.arg(cache);
         command.arg(id.to_url());
@@ -181,7 +182,6 @@ impl YtDlp {
             .lines()
             .map(|line| YtDlpItem {
                 id: line.to_owned(),
-                filename: line.to_owned(),
                 kind: playlist.kind,
             })
             .collect())

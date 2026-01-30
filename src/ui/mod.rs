@@ -910,6 +910,7 @@ impl<'ui> Ui<'ui> {
                 #[cfg(debug_assertions)]
                 Panes::Logs(p) => p.on_event(&mut event, visible, ctx),
                 Panes::Queue(p) => p.on_event(&mut event, visible, ctx),
+                Panes::Downloader(p) => p.on_event(&mut event, visible, ctx),
                 Panes::QueueHeader(p) => p.on_event(&mut event, visible, ctx),
                 Panes::Directories(p) => p.on_event(&mut event, visible, ctx),
                 Panes::Albums(p) => p.on_event(&mut event, visible, ctx),
@@ -958,6 +959,7 @@ impl<'ui> Ui<'ui> {
                     #[cfg(debug_assertions)]
                     Panes::Logs(p) => p.on_query_finished(id, data, visible, ctx),
                     Panes::Queue(p) => p.on_query_finished(id, data, visible, ctx),
+                    Panes::Downloader(p) => p.on_query_finished(id, data, visible, ctx),
                     Panes::QueueHeader(p) => p.on_query_finished(id, data, visible, ctx),
                     Panes::Directories(p) => p.on_query_finished(id, data, visible, ctx),
                     Panes::Albums(p) => p.on_query_finished(id, data, visible, ctx),

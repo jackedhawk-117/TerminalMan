@@ -218,7 +218,7 @@ impl DownloadsModal {
         {
             let actions = match &current.state {
                 DownloadState::Queued => vec![ContextAction::Cancel(*id)],
-                DownloadState::Downloading => vec![],
+                DownloadState::Downloading { .. } => vec![],
                 DownloadState::Completed { logs, path } => {
                     vec![ContextAction::Add(path.clone()), ContextAction::Logs(logs.clone())]
                 }
@@ -317,7 +317,7 @@ impl DownloadState {
     fn as_style(&self, ctx: &Ctx) -> ratatui::style::Style {
         match self {
             DownloadState::Queued => ctx.config.theme.level_styles.info,
-            DownloadState::Downloading => ctx.config.theme.level_styles.warn,
+            DownloadState::Downloading { .. } => ctx.config.theme.level_styles.warn,
             DownloadState::Completed { .. } => ctx.config.theme.level_styles.info,
             DownloadState::AlreadyDownloaded { .. } => ctx.config.theme.level_styles.info,
             DownloadState::Failed { .. } => ctx.config.theme.level_styles.error,

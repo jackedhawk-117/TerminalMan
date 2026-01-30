@@ -9,6 +9,7 @@ use albums::AlbumsPane;
 use anyhow::{Context, Result};
 use cava::CavaPane;
 use directories::DirectoriesPane;
+use downloader::DownloaderPane;
 use either::Either;
 use header::HeaderPane;
 use lyrics::LyricsPane;
@@ -76,6 +77,7 @@ pub mod album_art;
 pub mod albums;
 pub mod cava;
 pub mod directories;
+pub mod downloader;
 pub mod empty;
 #[cfg(debug_assertions)]
 pub mod frame_count;
@@ -100,6 +102,7 @@ pub enum Panes<'pane_ref, 'pane> {
     #[cfg(debug_assertions)]
     Logs(&'pane_ref mut LogsPane),
     Directories(&'pane_ref mut DirectoriesPane),
+    Downloader(&'pane_ref mut DownloaderPane),
     Artists(&'pane_ref mut TagBrowserPane),
     AlbumArtists(&'pane_ref mut TagBrowserPane),
     Albums(&'pane_ref mut AlbumsPane),
@@ -130,6 +133,7 @@ pub struct PaneContainer<'panes> {
     #[cfg(debug_assertions)]
     pub logs: LogsPane,
     pub directories: DirectoriesPane,
+    pub downloader: DownloaderPane,
     pub albums: AlbumsPane,
     pub artists: TagBrowserPane,
     pub album_artists: TagBrowserPane,
@@ -155,6 +159,7 @@ impl<'panes> PaneContainer<'panes> {
             #[cfg(debug_assertions)]
             logs: LogsPane::new(),
             directories: DirectoriesPane::new(ctx),
+            downloader: DownloaderPane::new(ctx),
             albums: AlbumsPane::new(ctx),
             artists: TagBrowserPane::new(Tag::Artist, PaneType::Artists, None, ctx),
             album_artists: TagBrowserPane::new(Tag::AlbumArtist, PaneType::AlbumArtists, None, ctx),
@@ -211,6 +216,7 @@ impl<'panes> PaneContainer<'panes> {
             #[cfg(debug_assertions)]
             PaneType::Logs => Ok(Panes::Logs(&mut self.logs)),
             PaneType::Directories => Ok(Panes::Directories(&mut self.directories)),
+            PaneType::Downloader => Ok(Panes::Downloader(&mut self.downloader)),
             PaneType::Artists => Ok(Panes::Artists(&mut self.artists)),
             PaneType::AlbumArtists => Ok(Panes::AlbumArtists(&mut self.album_artists)),
             PaneType::Albums => Ok(Panes::Albums(&mut self.albums)),
@@ -251,6 +257,7 @@ macro_rules! pane_call {
             #[cfg(debug_assertions)]
             Panes::Logs(s) => s.$fn($($param),+),
             Panes::Directories(s) => s.$fn($($param),+),
+            Panes::Downloader(s) => s.$fn($($param),+),
             Panes::Artists(s) => s.$fn($($param),+),
             Panes::AlbumArtists(s) => s.$fn($($param),+),
             Panes::Albums(s) => s.$fn($($param),+),

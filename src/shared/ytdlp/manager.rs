@@ -44,7 +44,7 @@ pub struct QueuedYtDlpItem {
 #[strum_discriminants(derive(strum::AsRefStr))]
 pub enum DownloadState {
     Queued,
-    Downloading,
+    Downloading { started_at: std::time::SystemTime },
     Completed { logs: Vec<String>, path: PathBuf },
     AlreadyDownloaded { path: PathBuf },
     Failed { logs: Vec<String> },
@@ -115,13 +115,13 @@ impl YtDlpManager {
                     }
 
                     status_info!("Downloading {} from {}", item.inner.id, item.inner.kind);
-                    item.state = DownloadState::Downloading;
+                    item.state = DownloadState::Downloading { started_at: std::time::SystemTime::now() };
 
                     // Only ever download one at a time
                     break;
                 }
                 // A different item is already downloading, do nothing
-                DownloadState::Downloading => {
+                DownloadState::Downloading { .. } => {
                     break;
                 }
                 // Noop, nothing to do with terminal states

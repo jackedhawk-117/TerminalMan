@@ -487,30 +487,40 @@ impl<T: MpdClient + MpdCommand + ProtoClient> MpdClientExt for T {
             position,
         );
         match result {
-            Ok(()) => {}
-            Err(MpdError::Mpd(err)) if err.is_no_exist() => {
+            Ok(()) => {
+                log::info!(path:? = path.display(); "Successfully added downloaded file to queue");
+            }
+            Err(MpdError::Mpd(err)) if err.is_no_exist() || err.code == ErrorCode::Permission => {
+                log::warn!(err:?, path:? = path.display(); "Initial add failed, will update database and retry");
                 let Some(cache_dir) = cache_dir else {
                     // This should not happen, the download should only happen when
                     // cache_dir is defined in the first place.
                     log::error!(err:?; "MPD reported error when adding files from yt-dlp cache dir, but cache_dir is not configured");
                     return Err(MpdError::Mpd(err))?;
                 };
-                let Some(cfg) = &self.config() else {
-                    // This should not happen either, music_directory is required for
-                    // MPD to work and rmpc needs socket connection to use yt-dpl so it
-                    // should always have permission to access the config.
-                    log::error!(err:?; "MPD reported error when adding files from yt-dlp cache dir, but cannot get music_directory from MPD");
-                    return Err(MpdError::Mpd(err))?;
+                let music_directory = match self.config() {
+                    Some(cfg) => cfg.music_directory.clone(),
+                    None => {
+                        log::error!(err:?; "MPD reported error when adding files from yt-dlp cache dir, but cannot get music_directory from MPD");
+                        return Err(MpdError::Mpd(err))?;
+                    }
                 };
-                let music_directory = &cfg.music_directory;
+
 
                 log::warn!(cache_dir:?, music_directory:?; "MPD reported noexist error when adding files from yt-dlp cache dir. Will try again after issuing database update.");
 
-                let Ok(update_dir) = cache_dir.strip_prefix(music_directory) else {
-                    // Rethrow the original error. The cache_dir is not inside the
+                // Get the directory containing the downloaded file
+                let file_dir = path.parent().unwrap_or(&path);
+                
+                let Ok(update_dir) = file_dir.strip_prefix(&music_directory) else {
+                    // Rethrow the original error. The file is not inside the
                     // music_directory so there is no reason to try to issue update to
                     // mpd.
-                    return Err(MpdError::Mpd(err))?;
+                    return Err(MpdError::Generic(format!(
+                        "Cannot add downloaded file: file is not inside music_directory. File: '{}', Music Dir: '{}'",
+                        path.display(),
+                        music_directory
+                    )));
                 };
 
                 log::trace!("Issuing database update");
@@ -537,13 +547,23 @@ impl<T: MpdClient + MpdCommand + ProtoClient> MpdClientExt for T {
                     }
                 }
 
-                log::debug!("Trying to add the downloaded files again");
+                let relative_path = match path.strip_prefix(&music_directory) {
+                    Ok(p) => p,
+                    Err(_) => {
+                        return Err(MpdError::Generic(format!(
+                            "Failed to strip music directory from path. Path: '{}', Music Dir: '{}'",
+                            path.display(),
+                            music_directory
+                        )));
+                    }
+                };
                 self.add(
-                    path.as_os_str().to_str().ok_or_else(|| {
+            relative_path.as_os_str().to_str().ok_or_else(|| {
                         MpdError::Generic(format!("Path '{}' is not valid UTF-8", path.display()))
                     })?,
                     position,
                 )?;
+                log::info!(path:? = path.display(); "Successfully added file after database update");
             }
             original @ Err(_) => original?,
         }

@@ -101,6 +101,7 @@ pub enum PaneTypeFile {
         separator: Option<String>,
     },
     Cava,
+    Downloader,
     Empty(),
 }
 
@@ -138,6 +139,7 @@ pub enum PaneType {
         separator: Option<String>,
     },
     Cava,
+    Downloader,
     Empty,
 }
 
@@ -223,6 +225,7 @@ impl TryFrom<PaneTypeFile> for PaneType {
                 PaneType::Browser { root_tag: tag, separator }
             }
             PaneTypeFile::Cava => PaneType::Cava,
+            PaneTypeFile::Downloader => PaneType::Downloader,
             PaneTypeFile::Empty() => PaneType::Empty,
         })
     }
@@ -1009,6 +1012,23 @@ impl Default for TabsFile {
                         border_title_alignment: Alignment::Left,
                         border_symbols: BorderSymbolsFile::Rounded,
                         pane: PaneOrSplitFile::Pane(PaneTypeFile::Search),
+                    }],
+                },
+            },
+            TabFile {
+                name: "Downloader".to_string(),
+                border_type: BorderTypeFile::None,
+                pane: PaneOrSplitFile::Split {
+                    borders: BordersFile::NONE,
+                    direction: DirectionFile::Vertical,
+                    panes: vec![SubPaneFile {
+                        size: "100%".to_string(),
+                        borders: BordersFile::ALL,
+                        border_title: Vec::new(),
+                        border_title_position: BorderTitlePosition::Top,
+                        border_title_alignment: Alignment::Left,
+                        border_symbols: BorderSymbolsFile::Rounded,
+                        pane: PaneOrSplitFile::Pane(PaneTypeFile::Downloader),
                     }],
                 },
             },
